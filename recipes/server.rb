@@ -32,6 +32,8 @@ when "8.3"
   node.default[:postgresql][:ssl] = "off"
 when "8.4"
   node.default[:postgresql][:ssl] = "true"
+when "9.1"
+  node.default[:postgresql][:ssl] = "true"
 end
 
 # Include the right "family" recipe for installing the server
@@ -43,8 +45,15 @@ when "debian", "ubuntu"
   include_recipe "postgresql::server_debian"
 end
 
+pg_hba_conf_source = begin
+  if node[:postgresql][:version] == "9.1"
+    "pg_hba_91.conf.erb"
+  else
+    "pg_hba.conf.erb"
+  end
+end
 template "#{node[:postgresql][:dir]}/pg_hba.conf" do
-  source "pg_hba.conf.erb"
+  source pg_hba_conf_source
   owner "postgres"
   group "postgres"
   mode 0600

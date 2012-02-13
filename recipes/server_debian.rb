@@ -34,7 +34,9 @@ service "postgresql" do
   case node['platform']
   when "ubuntu"
     case
-    when node['platform_version'].to_f <= 10.04
+    # PostgreSQL 9.1 on Ubuntu 10.04 gets set up as "postgresql", not "postgresql-9.1"
+    # Is this because of the PPA?
+    when node['platform_version'].to_f <= 10.04 && node['postgresql']['version'].to_f < 9.0
       service_name "postgresql-#{node['postgresql']['version']}"
     else
       service_name "postgresql"
@@ -53,8 +55,16 @@ service "postgresql" do
   action :nothing
 end
 
+postgresql_conf_source = begin
+  if node[:postgresql][:version] == "9.1"
+    "debian.postgresql_91.conf.erb"
+  else
+    "debian.postgresql.conf.erb"
+  end
+end
+
 template "#{node[:postgresql][:dir]}/postgresql.conf" do
-  source "debian.postgresql.conf.erb"
+  source postgresql_conf_source
   owner "postgres"
   group "postgres"
   mode 0600
