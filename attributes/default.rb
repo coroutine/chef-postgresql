@@ -70,3 +70,33 @@ else
   default[:postgresql][:version] = "8.4"
   set[:postgresql][:dir]         = "/etc/postgresql/#{node[:postgresql][:version]}/main"
 end
+
+# Replication/Hot Standby (set to postgresql defaults)
+# PostgreSQL 9.1
+# ----------------------------------------------------
+default[:postgresql][:listen_addresses] = "localhost"
+
+# Master Server
+default[:postgresql][:master] = false # Is this a master?
+# None of the below settings get written unless the above is set to "true"
+default[:postgresql][:wal_level] = "minimal"
+default[:postgresql][:max_wal_senders] = 0
+default[:postgresql][:wal_sender_delay] = "1s"
+default[:postgresql][:wal_keep_segments] = 0
+default[:postgresql][:vacuum_defer_cleanup_age] = 0
+default[:postgresql][:replication_timeout] = "60s"
+default[:postgresql][:synchronous_standby_names] = nil # comma-separated list of app name
+default[:postgresql][:standby_ips] = [] # list of IP addresses for standby nodes
+
+# Standby Servers
+default[:postgresql][:standby] = false # Is this a standby?
+# None of the below settings get written unless the above is set to "true"
+default[:postgresql][:hot_standby] = "off"
+default[:postgresql][:max_standby_archive_delay] = "30s"
+default[:postgresql][:max_standby_streaming_delay] = "30s"
+default[:postgresql][:wal_receiver_status_interval] = "10s"
+default[:postgresql][:hot_standby_feedback] = "off"
+# recovery.conf (only gets written if standby=true)
+default[:postgresql][:recovery][:standby_mode] = "on" 
+default[:postgresql][:recovery][:primary_conninfo ] = "" # MUST Be specified in the role
+

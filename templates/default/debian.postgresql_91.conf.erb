@@ -58,10 +58,14 @@ external_pid_file = '/var/run/postgresql/<%= node.postgresql.version -%>-main.pi
 
 # - Connection Settings -
 
+<% if not node.postgresql.listen_addresses.empty? %>
+listen_addresses = '<%= node.postgresql.listen_addresses %>'
+<% else %>
 #listen_addresses = 'localhost'		# what IP address(es) to listen on;
 					# comma-separated list of addresses;
 					# defaults to 'localhost', '*' = all
 					# (change requires restart)
+<% end %>
 port = 5432				# (change requires restart)
 max_connections = 100			# (change requires restart)
 # Note:  Increasing max_connections costs ~400 bytes of shared memory per
@@ -155,9 +159,12 @@ shared_buffers = 24MB			# min 128kB
 #------------------------------------------------------------------------------
 
 # - Settings -
-
+<% if node.postgresql.master %>
+wal_level = <%= node.postgresql.wal_level %>
+<% else %>
 #wal_level = minimal			# minimal, archive, or hot_standby
 					# (change requires restart)
+<% end %>
 #fsync = on				# turns forced synchronization on or off
 #synchronous_commit = on		# synchronization level; on, off, or local
 #wal_sync_method = fsync		# the default is the first option
@@ -198,7 +205,31 @@ shared_buffers = 24MB			# min 128kB
 # - Master Server -
 
 # These settings are ignored on a standby server
-
+<% if node.postgresql.master %>
+    <% if node.postgresql.max_wal_senders %>
+    max_wal_senders = <%= node.postgresql.max_wal_senders %>
+    <% end %>
+    
+    <% if node.postgresql.wal_sender_delay %>
+    wal_sender_delay = <%= node.postgresql.wal_sender_delay %>
+    <% end %>
+    
+    <% if node.postgresql.wal_keep_segments %>
+    wal_keep_segments = <%= node.postgresql.wal_keep_segments %>
+    <% end %>
+    
+    <% if node.postgresql.vacuum_defer_cleanup_age %>
+    vacuum_defer_cleanup_age = <%= node.postgresql.vacuum_defer_cleanup_age %>
+    <% end %>
+    
+    <% if node.postgresql.replication_timeout %>
+    replication_timeout = <%= node.postgresql.replication_timeout %>
+    <% end %>
+    
+    <% if node.postgresql.synchronous_standby_names %>
+    synchronous_standby_names = '<%= node.postgresql.synchronous_standby_names %>'
+    <% end %>
+<% else %>
 #max_wal_senders = 0		# max number of walsender processes
 				# (change requires restart)
 #wal_sender_delay = 1s		# walsender cycle time, 1-10000 milliseconds
@@ -208,11 +239,32 @@ shared_buffers = 24MB			# min 128kB
 #synchronous_standby_names = ''	# standby servers that provide sync rep
 				# comma-separated list of application_name
 				# from standby(s); '*' = all
+<% end %>
 
 # - Standby Servers -
-
 # These settings are ignored on a master server
+<% if node.postgresql.standby %>
+    <% if node.postgresql.hot_standby %>
+    hot_standby = <%= node.postgresql.hot_standby %>
+    <% end %>
 
+    <% if node.postgresql.max_standby_archive_delay %>
+    max_standby_archive_delay = <%= node.postgresql.max_standby_archive_delay %>
+    <% end %>
+
+    <% if node.postgresql.max_standby_streaming_delay %>
+    max_standby_streaming_delay <%= node.postgresql.max_standby_streaming_delay %>
+    <% end %>
+
+    <% if node.postgresql.wal_receiver_status_interval %>
+    wal_receiver_status_interval = <%= node.postgresql.wal_receiver_status_interval %>
+    <% end %>
+
+    <% if node.postgresql.hot_standby_feedback %>
+    hot_standby_feedback = <%= node.postgresql.hot_standby_feedback %>
+    <% end %>
+
+<% else %>
 #hot_standby = off			# "on" allows queries during recovery
 					# (change requires restart)
 #max_standby_archive_delay = 30s	# max delay before canceling queries
@@ -225,7 +277,7 @@ shared_buffers = 24MB			# min 128kB
 					# 0 disables
 #hot_standby_feedback = off		# send info from standby to prevent
 					# query conflicts
-
+<% end %>
 
 #------------------------------------------------------------------------------
 # QUERY TUNING

@@ -1,0 +1,4 @@
+<% if node.postgresql.recovery.standby_mode == "on" %>
+standby_mode = 'on'
+primary_conninfo = '<%= node.postgresql.recovery.primary_conninfo %>'
+<% end %>

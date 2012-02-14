@@ -99,3 +99,6 @@ host    all             all             ::1/128                 md5
 #local   replication     postgres                                peer
 #host    replication     postgres        127.0.0.1/32            md5
 #host    replication     postgres        ::1/128                 md5
+<% node.postgresql.standby_ips.each do |ip| %>
+host    replication     all     <%= ip -%>/32   trust
+<% end %>
