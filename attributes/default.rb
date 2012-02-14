@@ -85,8 +85,12 @@ default[:postgresql][:wal_sender_delay] = "1s"
 default[:postgresql][:wal_keep_segments] = 0
 default[:postgresql][:vacuum_defer_cleanup_age] = 0
 default[:postgresql][:replication_timeout] = "60s"
-default[:postgresql][:synchronous_standby_names] = nil # comma-separated list of app name
-default[:postgresql][:standby_ips] = [] # list of IP addresses for standby nodes
+# If you want to do synchronous streaming replication, 
+# profide a string containing a comma-separated list of 
+# node names for "synchronous_standby_names"
+default[:postgresql][:synchronous_standby_names] = nil 
+# list of IP addresses for standby nodes
+default[:postgresql][:standby_ips] = [] 
 
 # Standby Servers
 default[:postgresql][:standby] = false # Is this a standby?
