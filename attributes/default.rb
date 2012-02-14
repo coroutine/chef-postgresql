@@ -90,13 +90,11 @@ default[:postgresql][:standby_ips] = [] # list of IP addresses for standby nodes
 
 # Standby Servers
 default[:postgresql][:standby] = false # Is this a standby?
+default[:postgresql][:master_ip] = nil # MUST Be specified in the role
 # None of the below settings get written unless the above is set to "true"
 default[:postgresql][:hot_standby] = "off"
 default[:postgresql][:max_standby_archive_delay] = "30s"
 default[:postgresql][:max_standby_streaming_delay] = "30s"
 default[:postgresql][:wal_receiver_status_interval] = "10s"
 default[:postgresql][:hot_standby_feedback] = "off"
-# recovery.conf (only gets written if standby=true)
-default[:postgresql][:recovery][:standby_mode] = "on" 
-default[:postgresql][:recovery][:primary_conninfo ] = "" # MUST Be specified in the role
 

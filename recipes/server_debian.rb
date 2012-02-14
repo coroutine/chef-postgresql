@@ -71,13 +71,18 @@ template "#{node[:postgresql][:dir]}/postgresql.conf" do
   notifies :restart, resources(:service => "postgresql")
 end
 
-if node[:postgresql][:standby] && node[:postgresql][:recovery][:standby_mode] == "on"
+if node[:postgresql][:standby]
   # This goes in the data directory; where data is stored
+  node_name = Chef::Config[:node_name]
+  master_ip = node[:postgresql][:master_ip]
   template "/var/lib/postgresql/#{node[:postgresql][:version]}/main/recovery.conf" do
     source "recovery.conf.erb"
     owner "postgres"
     group "postgres"
     mode 0600
+    variables(
+      :primary_conninfo => "host=#{master_ip} application_name=#{node_name}"
+    )
     notifies :restart, resources(:service => "postgresql")
   end
 end
