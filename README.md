@@ -1,5 +1,13 @@
 Description
 ===========
+
+TODO: while hot-standby is configured, there's nothing in postgresql that'll do automated failover if the 
+master dies.  Typically, that's accomplished by:
+
+    * touching a trigger file on the standby (it'll then act as a master)
+    * using some form of IP failover so the Master's IP address is automatically transferred to the standby
+    * some STONITH mechanism for the old master, so it doesn't come back online
+
 This is a fork of the Opscode PostgreSQL cookbook, which as been modified to install PostgresQL 9.1 on ubuntu (10.04) (not tested on Red Hat platforms).
 
 NOTE: there's still something wanky about the node[:postgresql][:dir] attribute; it does NOT get reset if you override the postgresql version (i.e. in a role).  So, you still have to do something like this:
