@@ -69,6 +69,7 @@ bash "assign-postgres-password" do
   code <<-EOH
 echo "ALTER ROLE postgres ENCRYPTED PASSWORD '#{node[:postgresql][:password][:postgres]}';" | psql
   EOH
+  only_if "invoke-rc.d postgresql status | grep main" # make sure server is actually running
   not_if do
     begin
       require 'rubygems'
