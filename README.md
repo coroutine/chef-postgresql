@@ -176,6 +176,12 @@ To set this up, you'd need to:
 4. Set up Master/Standby Roles (see below) 
 5. Assign the roles to the appropriate Nodes
 6. Run `chef-client` on the Master (it will copy the database data directory over to the standby via rsync, so you'll be prompted for a password)
+    * TODO: this breaks down here...
+    * On the slave: manually remove everything in `/var/lib/postgresql/9.1/main` except for `pg_xlog`
+    * re-run the rsync command on the master to make sure things got copied over.
+    * restart postgresql on the master, then on the slave 
+    * On the master, run `ps -ef | grep sender` and then `ps -ef | grep receiver` on the slave
+    * IT'd be nice if this was all handled by chef :(
 7. Run `chef-client` on the Standby
 
 ### Master Role
