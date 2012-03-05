@@ -19,6 +19,10 @@
 # limitations under the License.
 #
 
+package "ruby-dev" do 
+  action :install
+end
+
 pg_packages = case node['platform']
 when "ubuntu","debian"
   %w{postgresql-client libpq-dev}
