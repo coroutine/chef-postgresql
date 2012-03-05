@@ -177,12 +177,16 @@ To set this up, you'd need to:
 5. Assign the roles to the appropriate Nodes
 6. Run `chef-client` on the Master (it will copy the database data directory over to the standby via rsync, so you'll be prompted for a password)
     * TODO: this breaks down here...
-    * On the slave: manually remove everything in `/var/lib/postgresql/9.1/main` except for `pg_xlog`
-    * re-run the rsync command on the master to make sure things got copied over.
-    * restart postgresql on the master, then on the slave 
+    * run chef-client on the master
+    * run chef-client on the standby
+    * kill postgresql on the standby
+    * On the standby: manually remove everything in `/var/lib/postgresql/9.1/main` except for `pg_xlog` and `recovery.conf`
+    * On the master: manually remove `/var/lib/postgresql/9.1/main/.initial_transfer_complete`, then re-run `chef-client`
+    * run chef-client on the master, (making sure the the rsync command works)
+    * restart postgresql on the master, then on the standby
     * On the master, run `ps -ef | grep sender` and then `ps -ef | grep receiver` on the slave
-    * IT'd be nice if this was all handled by chef :(
-7. Run `chef-client` on the Standby
+    * NOW, running `chef-client` on both nodes should work without any errors.
+    * It'd be nice if this was all handled by chef :(
 
 ### Master Role
 To configure a Master server, you would need to create a role that sets the appropriate properties. For example, given that you have a node namded `db2` with an ip address of `10.0.0.2`, you might create a role similar to the one below:
