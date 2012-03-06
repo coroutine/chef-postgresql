@@ -8,7 +8,9 @@ master dies.  Typically, that's accomplished by:
     * using some form of IP failover so the Master's IP address is automatically transferred to the standby
     * some STONITH mechanism for the old master, so it doesn't come back online
 
-This is a fork of the Opscode PostgreSQL cookbook, which as been modified to install PostgresQL 9.1 on ubuntu (10.04) (not tested on Red Hat platforms).
+This is a fork of the Opscode PostgreSQL cookbook, which as been modified extensively:
+    * supports PostgresQL 9.1 on ubuntu (10.04) (not tested on Red Hat platforms).
+    * adds a recipe to create PostgreSQL user accounts and databases (this particular addition couples this to the `database` cookbook)
 
 Additionally, the server recipe supports configuration for Hot Standby with Streaming replication (optionally synchronous). For more information, see the *Attributes* and *Usage* sections below. **NOTE** that this **only** works with PostgreSQL 1.9.
 
@@ -59,6 +61,10 @@ The following attributes are generated in
   password by the `openssl` cookbook's library.
 * `node['postgresql']['ssl']` - whether to enable SSL (off for version
   8.3, true for 8.4).
+
+The following attribute is used by the `setup` recipe:
+* `node['postgresql']['setup_items']` - a list of data bag items 
+  containing user/database information 
 
 Streaming Replication
 ---------------------
@@ -141,6 +147,10 @@ Manages the postgres user and group (with UID/GID 26, per RHEL package
 conventions), installs the postgresql server packages, initializes the
 database and manages the postgresql service, and manages the
 postgresql.conf file.
+
+setup
+-----
+Creates Roles (user account) and Databases from a data bag. Note that the postgres user's password is automatically created by the `server` recipe and can be referenced in `node['postgresql']['password']['postgres']`.
 
 Resources/Providers
 ===================
@@ -226,6 +236,38 @@ To configure a Standby, you could create a similar role. Assuming the master was
         :master_ip => "10.0.0.1"
       }
     )
+
+### User/Database Setup
+
+To configure users and databases, create a `postgresql` data bag, and add items that look similar to the following:
+
+    {
+        "id": "sample",
+        "users": [
+            {
+                "username":"sample_username",
+                "password":"sample_password"
+            }
+        ],
+        "databases": [
+            {
+                "name":"sampledb",
+                "owner":"sample_username", 
+                "template":"template0",
+                "encoding": "utf8"
+            }
+        ] 
+    }
+
+The, override the `node['postgresql']['setup_items']` in a role:
+
+    override_attributes(
+      :postgresql => {
+        :setup_items => ["sample", ]  # name of the data bags from which
+                                      # user/database info is read.
+      }
+    )
+
 
 Changes/Roadmap
 ==============

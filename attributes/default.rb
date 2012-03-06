@@ -102,3 +102,6 @@ default[:postgresql][:max_standby_streaming_delay] = "30s"
 default[:postgresql][:wal_receiver_status_interval] = "10s"
 default[:postgresql][:hot_standby_feedback] = "off"
 
+# Role/Database Setup
+default[:postgreql][:setup_items] = [] # list of data bag names
+
