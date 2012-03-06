@@ -66,6 +66,13 @@ The following attribute is used by the `setup` recipe:
 * `node['postgresql']['setup_items']` - a list of data bag items 
   containing user/database information 
 
+There are also a number of other attributes defined that control 
+things such as host based access (`pg_hba.conf`) and hot standby.
+A few are listed below, but see `attributes/default.rb` for more
+information.
+* `node['postgresql']['hba']` - a list of `address`/`method` hashes
+  defining the ip address that will be able to connect to PostreSQL
+
 Streaming Replication
 ---------------------
 
