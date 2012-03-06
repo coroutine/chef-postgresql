@@ -10,15 +10,6 @@ master dies.  Typically, that's accomplished by:
 
 This is a fork of the Opscode PostgreSQL cookbook, which as been modified to install PostgresQL 9.1 on ubuntu (10.04) (not tested on Red Hat platforms).
 
-NOTE: there's still something wanky about the node[:postgresql][:dir] attribute; it does NOT get reset if you override the postgresql version (i.e. in a role).  So, you still have to do something like this:
-
-    override_attributes(
-      :postgresql => {
-        :version => "9.1",
-        :dir => "/etc/postgresql/9.1/main"
-      }
-    )
-
 Additionally, the server recipe supports configuration for Hot Standby with Streaming replication (optionally synchronous). For more information, see the *Attributes* and *Usage* sections below. **NOTE** that this **only** works with PostgreSQL 1.9.
 
 Requirements
@@ -106,6 +97,17 @@ default
 -------
 
 Includes the client recipe.
+
+apt_postgresql_ppa
+------------------
+Adds sources for a PosgresSQL 9.1 package for Ubuntu 10.04. You'll need to specify the PostgreSQL `version` and `dir` attributes. For example, add the folloing to your role:
+
+    override_attributes(
+      :postgresql => {
+        :version => "9.1",
+        :dir => "/etc/postgresql/9.1/main"  
+      }
+    ) 
 
 client
 ------
