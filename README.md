@@ -1,18 +1,19 @@
 Description
 ===========
+This is a fork of the Opscode PostgreSQL cookbook, which as been modified extensively.
+    * supports PostgresQL 9.1 on ubuntu (10.04) (not tested on Red Hat platforms).
+    * adds a recipe to create PostgreSQL user accounts and databases (this particular addition couples this to the `database` cookbook)
 
-TODO: while hot-standby is configured, there's nothing in postgresql that'll do automated failover if the 
+Additionally, the server recipe supports configuration for Hot Standby with Streaming replication (optionally synchronous). For more information, see the *Attributes* and *Usage* sections below. **NOTE** that this **only** works with PostgreSQL 1.9.
+
+*TODO*: while hot-standby is configured, there's nothing in postgresql that'll do automated failover if the 
 master dies.  Typically, that's accomplished by:
 
     * touching a trigger file on the standby (it'll then act as a master)
     * using some form of IP failover so the Master's IP address is automatically transferred to the standby
     * some STONITH mechanism for the old master, so it doesn't come back online
 
-This is a fork of the Opscode PostgreSQL cookbook, which as been modified extensively:
-    * supports PostgresQL 9.1 on ubuntu (10.04) (not tested on Red Hat platforms).
-    * adds a recipe to create PostgreSQL user accounts and databases (this particular addition couples this to the `database` cookbook)
-
-Additionally, the server recipe supports configuration for Hot Standby with Streaming replication (optionally synchronous). For more information, see the *Attributes* and *Usage* sections below. **NOTE** that this **only** works with PostgreSQL 1.9.
+None of the above are handled automatically in this cookbook.
 
 Requirements
 ============

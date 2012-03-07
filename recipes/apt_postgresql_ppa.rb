@@ -1,17 +1,12 @@
 #
-# Cookbook Name:: coroutine_clients
-# Recipe::apt_postgresq91_ppa
-#
-# Copyright 2012, Coroutine
-#
-# All rights reserved.
+# Cookbook Name:: postgresql
+# Recipe::apt_postgresql_ppa
 #
 # Add the PostgreSQL 9.1 sources for Ubuntu
 # using the PPA available at:
 # https://launchpad.net/~pitti/+archive/postgresql
 
-# NOTE: "recipe[apt]" must be included somewhere... 
-# this is included by default in our base role.
+# NOTE: This requires the "apt" recipe
 
 case node["platform"]
 when "ubuntu"
