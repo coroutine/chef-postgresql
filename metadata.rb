@@ -5,7 +5,7 @@ description       "Installs and configures postgresql for clients or servers"
 long_description  IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version           "0.99.5"
 recipe            "postgresql", "Includes postgresql::client"
-recipe            "postgresl::apt_postgresql_ppa ", "Includes ubuntu sources for PostgreSQL 9.1"
+recipe            "postgresql::apt_postgresql_ppa ", "Includes ubuntu sources for PostgreSQL 9.1"
 recipe            "postgresql::client", "Installs postgresql client package(s)"
 recipe            "postgresql::server", "Installs postgresql server packages, templates"
 recipe            "postgresql::server_redhat", "Installs postgresql server packages, redhat family style"
