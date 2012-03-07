@@ -2,6 +2,7 @@
 # Cookbook Name:: postgresql
 # Recipe:: server
 #
+# Author:: Brad Montgomery (<bmontgomery@coroutine.com>)
 # Author:: Joshua Timberman (<joshua@opscode.com>)
 # Author:: Lamont Granquist (<lamont@opscode.com>)#
 # Copyright 2009-2011, Opscode, Inc.

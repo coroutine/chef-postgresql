@@ -297,6 +297,7 @@ License and Author
 
 Author:: Joshua Timberman (<joshua@opscode.com>)
 Author:: Lamont Granquist (<lamont@opscode.com>)
+Author:: Brad Montgomery (<lamont@coroutine.com>)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
