@@ -2,7 +2,7 @@
 local   all             postgres                                peer
 
 # TYPE  DATABASE  USER  ADDRESS  METHOD
-local   all       all            peer
+local   all       all            md5
 <% node.postgresql.hba.each do |h| %>
 host    all       all  <%= h["address"] %>  <%= h["method"] %>
 <% end %>
