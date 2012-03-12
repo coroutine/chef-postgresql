@@ -26,7 +26,7 @@ node['postgresql']['setup_items'].each do |itemname|
 end
 
 setup_items.each do |setup|
-
+  
   # The postgres user's password is automatically created
   # in the server cookbook. It's available in
   #   node['postgresql']['password']['postgres']
@@ -40,6 +40,7 @@ setup_items.each do |setup|
   # Create database Users
   setup["users"].each do |user|
     postgresql_database_user user['username'] do
+      Chef::Log.info("Creating Postgresql user: #{user['username']}")
       connection pg_connection_info
       password user['password']
       action :create
@@ -51,6 +52,7 @@ setup_items.each do |setup|
   # Create the app's DB
   setup["databases"].each do |db|
     postgresql_database db["name"] do
+      Chef::Log.info("Creating Postgresql database: #{db['name']}")
       connection pg_connection_info
       owner     db["owner"]
       encoding  db["encoding"]
