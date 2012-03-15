@@ -194,6 +194,7 @@ To set this up, you'd need to:
 2. Run the recipe to install a standard postgresql server on both machines.
 3. Log into the Standby machine and shut down postgresql.
 4. Set up Master/Standby Roles (see below) 
+    * Make sure both nodes have access to each others' PostgreSQL service by adding the appropriate values for the `node['postgresql']['hba']` attribute.
 5. Assign the roles to the appropriate Nodes
 6. Run `chef-client` on the Master (it will copy the database data directory over to the standby via rsync, so you'll be prompted for a password)
     * TODO: this breaks down here...
@@ -224,7 +225,13 @@ To configure a Master server, you would need to create a role that sets the appr
         :wal_level => "hot_standby",
         :max_wal_senders => 5,
         :standby_ips => [ "10.0.0.2", ],
-        :synchronous_standby_names => ["db2", ] # Omit this if you don't want synchronous replication
+        :synchronous_standby_names => ["db2", ], # Omit this if you don't want synchronous replication
+        :hba => [
+            { :method => 'md5', :address => '127.0.0.1/32' },
+            { :method => 'md5', :address => '::1/128' },
+            { :method => 'md5', :address => '10.0.0.1' },
+            { :method => 'md5', :address => '10.0.0.2' },
+        ]
       }
     )
 
@@ -241,7 +248,13 @@ To configure a Standby, you could create a similar role. Assuming the master was
         :dir => "/etc/postgresql/9.1/main",
         :standby => true,
         :hot_standby => "on",
-        :master_ip => "10.0.0.1"
+        :master_ip => "10.0.0.1",
+        :hba => [
+            { :method => 'md5', :address => '127.0.0.1/32' },
+            { :method => 'md5', :address => '::1/128' },
+            { :method => 'md5', :address => '10.0.0.1' },
+            { :method => 'md5', :address => '10.0.0.2' },
+        ]
       }
     )
 
