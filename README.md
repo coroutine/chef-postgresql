@@ -1,17 +1,24 @@
 Description
 ===========
-This is a fork of the Opscode PostgreSQL cookbook, which as been modified extensively.
-    * supports PostgresQL 9.1 on ubuntu (10.04) (not tested on Red Hat platforms).
-    * adds a recipe to create PostgreSQL user accounts and databases (this particular addition couples this to the `database` cookbook)
+This is a fork of the Opscode PostgreSQL cookbook, which has been modified 
+extensively.
 
-Additionally, the server recipe supports configuration for Hot Standby with Streaming replication (optionally synchronous). For more information, see the *Attributes* and *Usage* sections below. **NOTE** that this **only** works with PostgreSQL 1.9.
+* Adds support for PostgresQL 9.1 on Ubuntu 10.04 (Lucid) using a PPA. 
+* Adds a recipe to create PostgreSQL user accounts and databases (this 
+  particular addition couples this to the `database` cookbook)
 
-*TODO*: while hot-standby is configured, there's nothing in postgresql that'll do automated failover if the 
-master dies.  Typically, that's accomplished by:
+Additionally, the server recipe supports configuration for Hot Standby with 
+Streaming replication (optionally synchronous). For more information, see the 
+*Attributes* and *Usage* sections below. **NOTE** that this **only** works 
+with PostgreSQL 1.9.
 
-    * touching a trigger file on the standby (it'll then act as a master)
-    * using some form of IP failover so the Master's IP address is automatically transferred to the standby
-    * some STONITH mechanism for the old master, so it doesn't come back online
+*TODO*: while hot-standby is configured, there's nothing in postgresql that'll 
+do automated failover if the master dies.  Typically, that's accomplished by:
+
+* touching a trigger file on the standby (it'll then act as a master)
+* using some form of IP failover so the Master's IP address is automatically
+  transferred to the standby
+* some STONITH mechanism for the old master, so it doesn't come back online
 
 None of the above are handled automatically in this cookbook.
 
@@ -27,7 +34,7 @@ Requirements
 
 Tested on:
 
-* Ubuntu 10.04, 11.10
+* Ubuntu 10.04, 11.10, 12.04
 * Red Hat 6.1, Scientific 6.1
 
 ## Cookboooks
@@ -77,11 +84,16 @@ information.
 Streaming Replication
 ---------------------
 
-The following attributes can be modified to enable and configure streaming replication and for a Master or Standby.
+The following attributes can be modified to enable and configure streaming 
+replication and for a Master or Standby.
 
 * `default[:postgresql][:listen_addresses]`
-* `default[:postgresql][:master]` - Whether a node is a master. Defaults to false. In this case, replication will not be configured, and the rest of the master settings will be ignored.
-* `default[:postgresql][:standby]` - Whether a node is a standby. Defaults to false. In this case, replication will not be configured, and the rest of the standby settings will be ignored.
+* `default[:postgresql][:master]` - Whether a node is a master. Defaults to 
+  false. In this case, replication will not be configured, and the rest of the 
+  master settings will be ignored.
+* `default[:postgresql][:standby]` - Whether a node is a standby. Defaults to 
+  false. In this case, replication will not be configured, and the rest of the 
+  standby settings will be ignored.
 
 ### Master Server
 
@@ -91,13 +103,17 @@ The following attributes can be modified to enable and configure streaming repli
 * `default[:postgresql][:wal_keep_segments]`
 * `default[:postgresql][:vacuum_defer_cleanup_age]`
 * `default[:postgresql][:replication_timeout]`
-* `default[:postgresql][:synchronous_standby_names]` - If you want synchronous replication, this must be a string containing a comma-separated list of node names of the standby servers.
-* `default[:postgresql][:standby_ips]` - A list of IP addresses for standbys. These MUST be specified in a role.
+* `default[:postgresql][:synchronous_standby_names]` - If you want synchronous 
+  replication, this must be a string containing a comma-separated list of node 
+  names of the standby servers.
+* `default[:postgresql][:standby_ips]` - A list of IP addresses for standbys. 
+  These MUST be specified in a role.
 
 
 ### Standby Servers
 
-* `default[:postgresql][:master_ip]` - This MUST Be specified in the role. It lets the standby know how to connect to the master.
+* `default[:postgresql][:master_ip]` - This MUST Be specified in the role. It 
+  lets the standby know how to connect to the master.
 * `default[:postgresql][:hot_standby]` - set to `on` to enable hot standby.
 * `default[:postgresql][:max_standby_archive_delay]`
 * `default[:postgresql][:max_standby_streaming_delay]`
@@ -112,9 +128,14 @@ default
 
 Includes the client recipe.
 
-apt_postgresql_ppa
-------------------
-Adds sources for a PosgresSQL 9.1 package for Ubuntu 10.04. You'll need to specify the PostgreSQL `version` and `dir` attributes. For example, add the folloing to your role:
+`apt_postgresql_ppa`
+--------------------
+Adds sources for a PosgresSQL 9.1 package for _Ubuntu 10.04_. **NOTE** that this
+recipe should only be used in Ubuntu 10.04. Newer versions of Ubuntu include
+PostgreSQL 9.1 in their package repository.
+
+To use this, you'll need to specify the PostgreSQL `version` and `dir` 
+attributes. For example, add the folloing to your role:
 
     override_attributes(
       :postgresql => {
@@ -123,16 +144,16 @@ Adds sources for a PosgresSQL 9.1 package for Ubuntu 10.04. You'll need to speci
       }
     ) 
 
-client
-------
+`client`
+--------
 
 Installs postgresql client packages and development headers during the
 compile phase. Also installs the `pg` Ruby gem during the compile
 phase so it can be made available for the `database` cookbook's
 resources, providers and libraries.
 
-server
-------
+`server`
+--------
 
 Includes the `server_debian` or `server_redhat` recipe to get the
 appropriate server packages installed and service managed. Also
@@ -142,23 +163,25 @@ manages the configuration for the server:
 * sets the password for postgres
 * manages the `pg_hba.conf` file.
 
-server\_debian
---------------
+`server_debian`
+---------------
 
 Installs the postgresql server packages, manages the postgresql
 service and the postgresql.conf file.
 
-server\_redhat
---------------
+`server_redhat`
+---------------
 
 Manages the postgres user and group (with UID/GID 26, per RHEL package
 conventions), installs the postgresql server packages, initializes the
 database and manages the postgresql service, and manages the
 postgresql.conf file.
 
-setup
------
-Creates Roles (user account) and Databases from a data bag. Note that the postgres user's password is automatically created by the `server` recipe and can be referenced in `node['postgresql']['password']['postgres']`.
+`setup`
+-------
+Creates Roles (user account) and Databases from a data bag. Note that the 
+postgres user's password is automatically created by the `server` recipe and 
+can be referenced in `node['postgresql']['password']['postgres']`.
 
 Resources/Providers
 ===================
@@ -194,21 +217,30 @@ To set this up, you'd need to:
 2. Run the recipe to install a standard postgresql server on both machines.
 3. Log into the Standby machine and shut down postgresql.
 4. Set up Master/Standby Roles (see below) 
-    * Make sure both nodes have access to each others' PostgreSQL service by adding the appropriate values for the `node['postgresql']['hba']` attribute.
+        * Make sure both nodes have access to each others' PostgreSQL service by 
+          adding the appropriate values for the `node['postgresql']['hba']` attribute.
 5. Assign the roles to the appropriate Nodes
 6. Run `chef-client` on the Master. Wait for it to finish.
 7. Run chef-client on the Standby. It will fail. That's ok... proceed 
-8. Hand-configure the standby (It might be possible to script this for one run only, but just do it by hand for now)
-    * kill postgresql on the standby
-    * manually remove everything in `/var/lib/postgresql/9.1/main` except for `pg_xlog` and `recovery.conf`
-9. On the master: manually remove `/var/lib/postgresql/9.1/main/.initial_transfer_complete`, then re-run `chef-client` (it will again copy the database data directory over to the standby via rsync, so you'll be prompted for a password unless you've got public keys in place... make sure this step works!)
+8. Hand-configure the standby (It might be possible to script this for one 
+   run only, but just do it by hand for now)
+        * kill postgresql on the standby
+        * manually remove everything in `/var/lib/postgresql/9.1/main` except 
+          for `pg_xlog` and `recovery.conf`
+9. On the master: manually remove `/var/lib/postgresql/9.1/main/.initial_transfer_complete`,
+   then re-run `chef-client` (it will again copy the database data directory 
+   over to the standby via rsync, so you'll be prompted for a password unless 
+   you've got public keys in place... make sure this step works!)
 10. Restart postgresql on the master, then on the standby
     * Run `ps -ef | grep sender` on the Master
     * Run `ps -ef | grep receiver` on the Standby
 11. NOW, running `chef-client` on both nodes should work without any errors.
 
 ### Master Role
-To configure a Master server, you would need to create a role that sets the appropriate properties. For example, given that you have a node namded `db2` with an ip address of `10.0.0.2`, you might create a role similar to the one below:
+To configure a Master server, you would need to create a role that sets the 
+appropriate properties. For example, given that you have a node namded `db2` 
+with an ip address of `10.0.0.2`, you might create a role similar to the one 
+below:
 
     name "pg_server_master"
     description "A PostgreSQL Master"
@@ -234,7 +266,8 @@ To configure a Master server, you would need to create a role that sets the appr
     )
 
 ### Standby Role
-To configure a Standby, you could create a similar role. Assuming the master was available at an ip address of `10.0.0.1`:
+To configure a Standby, you could create a similar role. Assuming the master 
+was available at an ip address of `10.0.0.1`:
 
     name "pg_server_standby"
     description "A PostgreSQL Standby"
@@ -258,7 +291,8 @@ To configure a Standby, you could create a similar role. Assuming the master was
 
 ### User/Database Setup
 
-To configure users and databases, create a `postgresql` data bag, and add items that look similar to the following:
+To configure users and databases, create a `postgresql` data bag, and add items
+that look similar to the following:
 
     {
         "id": "sample",
