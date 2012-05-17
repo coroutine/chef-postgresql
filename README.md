@@ -123,10 +123,11 @@ replication and for a Master or Standby.
 Recipes
 =======
 
-default
--------
+`default`
+---------
 
-Includes the client recipe.
+This recipe just includes the `postgresql::client` recipe, which installs the
+postgresql client package and required dependencies.
 
 `apt_postgresql_ppa`
 --------------------
