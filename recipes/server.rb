@@ -45,15 +45,8 @@ when "debian", "ubuntu"
   include_recipe "postgresql::server_debian"
 end
 
-pg_hba_conf_source = begin
-  if node[:postgresql][:version] == "9.1"
-    "pg_hba_91.conf.erb"
-  else
-    "pg_hba.conf.erb"
-  end
-end
 template "#{node[:postgresql][:dir]}/pg_hba.conf" do
-  source pg_hba_conf_source
+  source "pg_hba.conf.erb"
   owner "postgres"
   group "postgres"
   mode 0600

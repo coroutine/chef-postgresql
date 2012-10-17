@@ -6,11 +6,8 @@ extensively.
 * Adds support for PostgresQL 9.1 on Ubuntu 10.04 (Lucid) using a PPA. 
 * Adds a recipe to create PostgreSQL user accounts and databases (this 
   particular addition couples this to the `database` cookbook)
-
-Additionally, the server recipe supports configuration for Hot Standby with 
-Streaming replication (optionally synchronous). For more information, see the 
-*Attributes* and *Usage* sections below. **NOTE** that this **only** works 
-with PostgreSQL 1.9.
+* Adds support for configuring Hot Standby with Streaming replication
+  (optionally synchronous) in PostgreSQL 9.1
 
 *TODO*: while hot-standby is configured, there's nothing in postgresql that'll 
 do automated failover if the master dies.  Typically, that's accomplished by:
@@ -32,25 +29,21 @@ Requirements
 * Fedora
 * SUSE
 
-Tested on:
-
-* Ubuntu 10.04, 11.10, 12.04
-* Red Hat 6.1, Scientific 6.1
+**Note**: Hot Standby and Streaming replication are only supported on Debian
+and Ubuntu.
 
 ## Cookboooks
 
-Requires Opscode's `openssl` cookbook for secure password generation.
-
-Requires a C compiler and development headers in order to build the
-`pg` RubyGem to provide Ruby bindings so they're available in other
-cookbooks.
+Requires Opscode's `openssl` cookbook for secure password generation, and a C
+compiler and development headers in order to build the `pg` RubyGem to provide
+Ruby bindings so they're available in other cookbooks.
 
 Opscode's `build-essential` cookbook provides this functionality on
 Debian, Ubuntu, and EL6-family.
 
-While not required, Opscode's `database` cookbook contains resources
-and providers that can interact with a PostgreSQL database. This
-cookbook is a dependency of that one.
+While not required, Opscode's `database` cookbook contains resources and
+providers that can interact with a PostgreSQL database. The Opscode 
+`postgresql`cookbook is a dependency of database.
 
 Attributes
 ==========
@@ -61,6 +54,10 @@ The following attributes are set based on the platform, see the
 * `node['postgresql']['version']` - version of postgresql to manage
 * `node['postgresql']['dir']` - home directory of where postgresql
   data and configuration lives.
+* `node['postgresql']['client']['packages']` - An array of package names
+  that should be installed on "client" systems.
+* `node['postgresql']['server']['packages']` - An array of package names
+  that should be installed on "server" systems.
 
 The following attributes are generated in
 `recipe[postgresql::server]`.
@@ -68,16 +65,15 @@ The following attributes are generated in
 * `node['postgresql']['password']['postgres']` - randomly generated
   password by the `openssl` cookbook's library.
 * `node['postgresql']['ssl']` - whether to enable SSL (off for version
-  8.3, true for 8.4).
+  8.3, true for 8.4 and later).
 
 The following attribute is used by the `setup` recipe:
 * `node['postgresql']['setup_items']` - a list of data bag items 
   containing user/database information 
 
-There are also a number of other attributes defined that control 
-things such as host based access (`pg_hba.conf`) and hot standby.
-A few are listed below, but see `attributes/default.rb` for more
-information.
+There are also a number of other attributes defined that control  things such
+as host based access (`pg_hba.conf`) and hot standby. A few are listed below,
+but see `attributes/default.rb` for more information.
 * `node['postgresql']['hba']` - a list of `address`/`method` hashes
   defining the ip address that will be able to connect to PostreSQL
 
@@ -123,14 +119,14 @@ replication and for a Master or Standby.
 Recipes
 =======
 
-`default`
----------
+default
+-------
 
 This recipe just includes the `postgresql::client` recipe, which installs the
 postgresql client package and required dependencies.
 
-`apt_postgresql_ppa`
---------------------
+apt_postgresql_ppa
+------------------
 Adds sources for a PosgresSQL 9.1 package for _Ubuntu 10.04_. **NOTE** that this
 recipe should only be used in Ubuntu 10.04. Newer versions of Ubuntu include
 PostgreSQL 9.1 in their package repository.
@@ -145,41 +141,51 @@ attributes. For example, add the folloing to your role:
       }
     ) 
 
-`client`
---------
+client
+------
 
 Installs postgresql client packages and development headers during the
-compile phase. Also installs the `pg` Ruby gem during the compile
-phase so it can be made available for the `database` cookbook's
-resources, providers and libraries.
+compile phase. 
 
-`server`
---------
+ruby
+----
 
-Includes the `server_debian` or `server_redhat` recipe to get the
-appropriate server packages installed and service managed. Also
-manages the configuration for the server:
+**NOTE** This recipe may not currently work when installing Chef with
+  the
+  ["Omnibus" full stack installer](http://opscode.com/chef/install) on
+  some platforms due to an incompatibility with OpenSSL. See
+  [COOK-1406](http://tickets.opscode.com/browse/COOK-1406)
+
+Install the `pg` gem under Chef's Ruby environment so it can be used
+in other recipes.
+
+server
+------
+
+Includes the `server_debian` or `server_redhat` recipe to get the appropriate
+server packages installed and service managed. Also manages the configuration
+for the server:
 
 * generates a strong default password (via `openssl`) for `postgres`
 * sets the password for postgres
 * manages the `pg_hba.conf` file.
 
-`server_debian`
----------------
+server\_debian
+--------------
 
-Installs the postgresql server packages, manages the postgresql
-service and the postgresql.conf file.
+Installs the postgresql server packages, manages the postgresql service and
+the postgresql.conf file.
 
-`server_redhat`
----------------
+server\_redhat
+--------------
 
 Manages the postgres user and group (with UID/GID 26, per RHEL package
 conventions), installs the postgresql server packages, initializes the
 database and manages the postgresql service, and manages the
 postgresql.conf file.
 
-`setup`
--------
+setup
+-----
 Creates Roles (user account) and Databases from a data bag. Note that the 
 postgres user's password is automatically created by the `server` recipe and 
 can be referenced in `node['postgresql']['password']['postgres']`.
@@ -194,21 +200,15 @@ users and databases.
 Usage
 =====
 
-On systems that need to connect to a PostgreSQL database, add to a run
-list `recipe[postgresql]` or `recipe[postgresql::client]`.
+On systems that need to connect to a PostgreSQL database, add to a run list
+`recipe[postgresql]` or `recipe[postgresql::client]`.
 
-This does install the `pg` RubyGem, which has native C extensions, so
-that the resources and providers can be used in the `database`
-cookbook, or elsewhere in the same Chef run. Use Opscode's
-`build-essential` cookbook to make sure the proper build tools are
-installed so the C extensions can be compiled.
-
-On systems that should be PostgreSQL servers, use
-`recipe[postgresql::server]` on a run list. This recipe does set a
-password and expect to use it. It performs a node.save when Chef is
-not running in `solo` mode. If you're using `chef-solo`, you'll need
-to set the attribute `node['postgresql']['password']['postgres']` in
-your node's `json_attribs` file or in a role.
+On systems that should be PostgreSQL servers, use `recipe[postgresql::server]`
+in a run list. This recipe does set a password and expect to use it. It
+performs a node.save when Chef is not running in `solo` mode. If you're using
+`chef-solo`, you'll need to set the attribute 
+`node['postgresql']['password']['postgres']` in your node's `json_attribs` file
+or in a role.
 
 Streaming Replication/Hot Standby
 ---------------------------------
@@ -322,28 +322,12 @@ The, override the `node['postgresql']['setup_items']` in a role:
       }
     )
 
-
-Changes/Roadmap
-==============
-
-## TODO: include changes added to this repo
-
-## v0.99.2:
-
-* [COOK-916] - use < (with float) for version comparison.
-
-## v0.99.0:
-
-* Better support for Red Hat-family platforms
-* Integration with database cookbook
-* Make sure the postgres role is updated with a (secure) password
-
 License and Author
 ==================
 
 Author:: Joshua Timberman (<joshua@opscode.com>)
 Author:: Lamont Granquist (<lamont@opscode.com>)
-Author:: Brad Montgomery (<bmontgomery@coroutine.com>)
+Author:: Brad Montgomery (<brad@bradmontgomery.net>)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

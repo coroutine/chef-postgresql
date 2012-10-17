@@ -1,10 +1,9 @@
 #
 # Cookbook Name:: postgresql
-# Recipe:: client
+# Recipe:: ruby
 #
 # Author:: Joshua Timberman (<joshua@opscode.com>)
-# Author:: Lamont Granquist (<lamont@opscode.com>)
-# Copyright 2009-2011 Opscode, Inc.
+# Copyright 2012 Opscode, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,8 +18,19 @@
 # limitations under the License.
 #
 
+execute "apt-get update" do
+  ignore_failure true
+  action :nothing
+end.run_action(:run) if node['platform_family'] == "debian"
+
+node.set['build_essential']['compiletime'] = true
+include_recipe "build-essential"
+include_recipe "postgresql::client"
+
 node['postgresql']['client']['packages'].each do |pg_pack|
-  package pg_pack do
-    action :install
-  end
+
+  resources("package[#{pg_pack}]").run_action(:install)
+
 end
+
+chef_gem "pg"

@@ -44,8 +44,6 @@ setup_items.each do |setup|
       connection pg_connection_info
       password user['password']
       action :create
-      #database_name instance_name
-      #action [:create, :grant]
     end
   end
   
@@ -61,9 +59,3 @@ setup_items.each do |setup|
     end
   end
 end
-
-# Reset the pg_hba.conf file, so connections via 
-# unix sockets are via md5 instead of ident
-#template "#{node['postgresql']['dir']}/pg_hba.conf" do
-  #source "pg_hba.conf.erb"
-#end
