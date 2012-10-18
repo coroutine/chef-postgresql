@@ -137,4 +137,8 @@ default[:postgresql][:wal_receiver_status_interval] = "10s"
 default[:postgresql][:hot_standby_feedback] = "off"
 
 # Role/Database Setup
-default[:postgreql][:setup_items] = [] # list of data bag names
+# -------------------
+# list of item names. See README for format of a data bag item
+default[:postgresql][:setup_items] = []
+default[:postgresql][:databag] = "postgresql" # name of the data bag containing
+                                             # setup items.

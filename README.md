@@ -67,9 +67,12 @@ The following attributes are generated in
 * `node['postgresql']['ssl']` - whether to enable SSL (off for version
   8.3, true for 8.4 and later).
 
-The following attribute is used by the `setup` recipe:
+The following attributes are used by the `setup` recipe:
+* `node['postgresql']['databag']` - the data bag in which the `setup` recipe
+  searches for items. Default is `postgresql`
 * `node['postgresql']['setup_items']` - a list of data bag items 
-  containing user/database information 
+  containing user/database information. See the notes for the `setup` recipe
+  for the expected format.
 
 There are also a number of other attributes defined that control  things such
 as host based access (`pg_hba.conf`) and hot standby. A few are listed below,
@@ -186,9 +189,9 @@ postgresql.conf file.
 
 setup
 -----
-Creates Roles (user account) and Databases from a data bag. Note that the 
-postgres user's password is automatically created by the `server` recipe and 
-can be referenced in `node['postgresql']['password']['postgres']`.
+Creates Roles (user account) and Databases from a data bag. See the *Usage*
+section for more info.
+
 
 Resources/Providers
 ===================
@@ -292,33 +295,39 @@ was available at an ip address of `10.0.0.1`:
 
 ### User/Database Setup
 
-To configure users and databases, create a `postgresql` data bag, and add items
-that look similar to the following:
+To configure users and databases, create a data bag with the name used in the
+`default[:postgresql][:databag]` attribute. Items in this databag will be used
+to create both PostgreSQL users and databases. The format of each databag item
+should be similar to the following:
 
     {
-        "id": "sample",
-        "users": [
-            {
-                "username":"sample_username",
-                "password":"sample_password"
-            }
-        ],
-        "databases": [
-            {
-                "name":"sampledb",
-                "owner":"sample_username", 
-                "template":"template0",
-                "encoding": "utf8"
-            }
-        ] 
+       "id": "sample_db_setup",
+       "users": [
+           {
+               "username":"some_user",
+               "password":"some_password",
+               "superuser": "true",
+           }
+       ],
+       "databases": [
+           {
+               "name":"some_db",
+               "owner":"some_user", 
+               "template":"template0",
+               "encoding": "UTF8",
+               "locale": "en_US.utf8"
+           }
+       ] 
     }
 
-The, override the `node['postgresql']['setup_items']` in a role:
+
+Then, override the `node['postgresql']['setup_items']` attribute in a role:
 
     override_attributes(
       :postgresql => {
-        :setup_items => ["sample", ]  # name of the data bags from which
-                                      # user/database info is read.
+        :databag     => "postgresql", # databag from which items are fetched
+        :setup_items => ["sample_db_setup", ]  # name of item from which
+                                               # user/database info is read.
       }
     )
 
