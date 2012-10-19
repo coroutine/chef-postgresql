@@ -45,15 +45,8 @@ when "debian", "ubuntu"
   include_recipe "postgresql::server_debian"
 end
 
-pg_hba_conf_source = begin
-  if node[:postgresql][:version] == "9.1"
-    "pg_hba_91.conf.erb"
-  else
-    "pg_hba.conf.erb"
-  end
-end
 template "#{node[:postgresql][:dir]}/pg_hba.conf" do
-  source pg_hba_conf_source
+  source "pg_hba.conf.erb"
   owner "postgres"
   group "postgres"
   mode 0600
@@ -70,15 +63,6 @@ bash "assign-postgres-password" do
 echo "ALTER ROLE postgres ENCRYPTED PASSWORD '#{node[:postgresql][:password][:postgres]}';" | psql
   EOH
   only_if "invoke-rc.d postgresql status | grep main" # make sure server is actually running
-  not_if do
-    begin
-      require 'rubygems'
-      Gem.clear_paths
-      require 'pg'
-      conn = PGconn.connect("localhost", 5432, nil, nil, nil, "postgres", node['postgresql']['password']['postgres'])
-    rescue PGError
-      false
-    end
-  end
+  not_if "echo '\connect' | PGPASSWORD=#{node['postgresql']['password']['postgres']} psql --username=postgres --no-password -h localhost"
   action :run
 end

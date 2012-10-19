@@ -16,54 +16,101 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+# --------------------------------------
+# Sample Item from the specified Databag
+# --------------------------------------
+# {
+#    "id": "postgresql_setup_wfp",
+#    "users": [
+#        {
+#            "username":"some_user",
+#            "password":"some_password",
+#            "superuser": "true",
+#        }
+#    ],
+#    "databases": [
+#        {
+#            "name":"some_db",
+#            "owner":"some_user", 
+#            "template":"template0",
+#            "encoding": "UTF8",
+#            "locale": "en_US.utf8"
+#        }
+#    ] 
+# }
+# --------------------------------------
 
+
+# Fetch the setup items from the Databag; It contains things like Datase users,
+# passwords, DB names and encoding.
 setup_items = []
-
 node['postgresql']['setup_items'].each do |itemname|
-  search(:postgresql, "id:#{itemname}") do |i|
+  databag = node['postgresql']['databag']
+  item = "id:#{itemname}"
+  search(databag, item) do |i|
     setup_items << i
   end
 end
 
+# We use a mix of psql commands and SQL statements to create users.
+#
+# To Create a User:
+#     sudo -u postgres createuser -s some_user 
+#
+# To set their password:
+#     sudo -u postgres psql -c "ALTER USER some_user WITH PASSWORD 'secret';"
+#
+# To create a Database
+#     sudo -u postgres createdb -E UTF8 -O some_user \
+#          -T template0 database_name --local=en_US.utf8
+#
+# To make these idempotent, we test for existing users/databases;
+# Test for existing DB:
+#     sudo -u postgres psql -l | grep database_name
+#
+# Test for existing Users
+#     sudo -u postgres psql -c "\du" | grep some_user
+
 setup_items.each do |setup|
   
-  # The postgres user's password is automatically created
-  # in the server cookbook. It's available in
-  #   node['postgresql']['password']['postgres']
-  pg_connection_info = {
-    :host => "127.0.0.1",
-    :port => "5432",
-    :username => "postgres",
-    :password => node['postgresql']['password']['postgres']
-  }
-  
-  # Create database Users
   setup["users"].each do |user|
-    postgresql_database_user user['username'] do
-      Chef::Log.info("Creating Postgresql user: #{user['username']}")
-      connection pg_connection_info
-      password user['password']
-      action :create
-      #database_name instance_name
-      #action [:create, :grant]
+    
+    create_user_command = begin
+      if user['superuser']
+        "sudo -u postgres createuser -s #{user['username']};"
+      else
+        "sudo -u postgres createuser #{user['username']};"
+      end
     end
-  end
-  
-  # Create the app's DB
-  setup["databases"].each do |db|
-    postgresql_database db["name"] do
-      Chef::Log.info("Creating Postgresql database: #{db['name']}")
-      connection pg_connection_info
-      owner     db["owner"]
-      encoding  db["encoding"]
-      template  db["template"]
-      action :create
-    end
-  end
-end
 
-# Reset the pg_hba.conf file, so connections via 
-# unix sockets are via md5 instead of ident
-#template "#{node['postgresql']['dir']}/pg_hba.conf" do
-  #source "pg_hba.conf.erb"
-#end
+    set_user_password = begin
+        "sudo -u postgres psql -c \"ALTER USER #{user['username']} " +
+        "WITH PASSWORD '#{user['password']}';\""
+    end
+
+    bash "create_user" do
+      user "root"
+      code <<-EOH
+        #{create_user_command} #{set_user_password}
+      EOH
+      not_if "sudo -u postgres psql -c \"\\du\" | grep #{user['username']}"
+    end 
+  end 
+
+  setup["databases"].each do |db|
+    
+    create_database_command = begin
+      "sudo -u postgres createdb -E #{db['encoding']} -O #{db['owner']} " +
+      "-T #{db['template']} #{db['name']} --local=#{db['locale']}"
+    end
+    
+    bash "create_database" do
+      user "root"
+      code <<-EOH
+        #{create_database_command}
+      EOH
+      not_if "sudo -u postgres psql -l | grep #{db['name']}"
+    end
+  end # End DB setup
+
+end
