@@ -218,32 +218,32 @@ Streaming Replication/Hot Standby
 To set this up, you'd need to:
 
 1. Bootstrap the Nodes (you've got know know their IP addresses!)
-2. Run the recipe to install a standard postgresql server on both machines.
-3. Log into the Standby machine and shut down postgresql.
-4. Set up Master/Standby Roles (see below) 
-        * Make sure both nodes have access to each others' PostgreSQL service by 
-          adding the appropriate values for the `node['postgresql']['hba']` attribute.
-5. Assign the roles to the appropriate Nodes
-6. Run `chef-client` on the Master. Wait for it to finish.
-7. Run chef-client on the Standby. It will fail. That's ok... proceed 
-8. Hand-configure the standby (It might be possible to script this for one 
-   run only, but just do it by hand for now)
-        * kill postgresql on the standby
-        * manually remove everything in `/var/lib/postgresql/9.1/main` except 
-          for `pg_xlog` and `recovery.conf`
-9. On the master: manually remove `/var/lib/postgresql/9.1/main/.initial_transfer_complete`,
-   then re-run `chef-client` (it will again copy the database data directory 
+2. Assign the `server` recipe to the master and slave nodes to install a
+   standard postgresql server.
+3. Log into the Standby machine and shut down PostgreSQL.
+4. Create the Master/Standby Roles (see below) and apply to each node.
+        * Make sure both nodes have access to each others' PostgreSQL service
+          by adding the appropriate values for the `node['postgresql']['hba']`
+          attribute.
+5. Run `chef-client` on the Master. Wait for it to finish.
+6. Run `chef-client` on the Standby. It will fail. That's ok. Log into the
+   standby and make sure PostgreSQL is not running.
+7. Log into the master and manually remove 
+   `/var/lib/postgresql/9.1/main/.initial_transfer_complete`, then re-run
+   `chef-client` (it will again copy the database data directory 
    over to the standby via rsync, so you'll be prompted for a password unless 
    you've got public keys in place... make sure this step works!)
-10. Restart postgresql on the master, then on the standby
+8. Restart postgresql on the master, then on the standby and run `chef-client`
+   on both nodes. Check to make sure PostgreSQL's `sender` and `receiver`
+   processes are running:
     * Run `ps -ef | grep sender` on the Master
     * Run `ps -ef | grep receiver` on the Standby
-11. NOW, running `chef-client` on both nodes should work without any errors.
+9. Subsequent runs of `chef-client` should work without any errors.
 
 ### Master Role
 To configure a Master server, you would need to create a role that sets the 
 appropriate properties. For example, given that you have a node namded `db2` 
-with an ip address of `10.0.0.2`, you might create a role similar to the one 
+with an ip address of `10.0.0.11`, you might create a role similar to the one 
 below:
 
     name "pg_server_master"
@@ -258,20 +258,21 @@ below:
         :listen_addresses => "*",
         :wal_level => "hot_standby",
         :max_wal_senders => 5,
-        :standby_ips => [ "10.0.0.2", ],
-        :synchronous_standby_names => ["db2", ], # Omit this if you don't want synchronous replication
+        :standby_ips => [ "10.0.0.11", ],
+        :synchronous_standby_names => ["db2", ], # Omit this if you don't want
+                                                 # synchronous replication
         :hba => [
             { :method => 'md5', :address => '127.0.0.1/32' },
             { :method => 'md5', :address => '::1/128' },
-            { :method => 'md5', :address => '10.0.0.1' },
-            { :method => 'md5', :address => '10.0.0.2' },
+            { :method => 'md5', :address => '10.0.0.10' },
+            { :method => 'md5', :address => '10.0.0.11' },
         ]
       }
     )
 
 ### Standby Role
 To configure a Standby, you could create a similar role. Assuming the master 
-was available at an ip address of `10.0.0.1`:
+was available at an ip address of `10.0.0.10`:
 
     name "pg_server_standby"
     description "A PostgreSQL Standby"
@@ -283,12 +284,12 @@ was available at an ip address of `10.0.0.1`:
         :dir => "/etc/postgresql/9.1/main",
         :standby => true,
         :hot_standby => "on",
-        :master_ip => "10.0.0.1",
+        :master_ip => "10.0.0.10",
         :hba => [
             { :method => 'md5', :address => '127.0.0.1/32' },
             { :method => 'md5', :address => '::1/128' },
-            { :method => 'md5', :address => '10.0.0.1' },
-            { :method => 'md5', :address => '10.0.0.2' },
+            { :method => 'md5', :address => '10.0.0.10' },
+            { :method => 'md5', :address => '10.0.0.11' },
         ]
       }
     )
