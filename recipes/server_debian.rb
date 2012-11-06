@@ -30,6 +30,7 @@ else # > 8.3
 end
 
 package "postgresql"
+package "postgresql-contrib"
 
 service "postgresql" do
   case node['platform']
@@ -61,6 +62,14 @@ postgresql_conf_source = begin
     "debian.postgresql_91.conf.erb"
   else
     "debian.postgresql.conf.erb"
+  end
+end
+
+if node['platform'] == 'ubuntu' && node['platform_version'].to_f >= 12.04
+  bash "Create Cluster" do
+    user "root"
+    code "pg_createcluster #{node['postgresql']['version']} main --start"
+    not_if { FileTest.directory?("/var/lib/postgresql/#{node.postgresql.version}/main") }
   end
 end
 
