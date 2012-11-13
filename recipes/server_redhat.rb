@@ -75,9 +75,9 @@ end
 
 postgresql_conf_source = begin
   if node[:postgresql][:version] == "9.1"
-    "redhad.postgresql_91.conf.erb"
+    "redhat.postgresql_91.conf.erb"
   else
-    "redhad.postgresql.conf.erb"
+    "redhat.postgresql.conf.erb"
   end
 end
 
