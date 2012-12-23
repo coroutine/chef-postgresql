@@ -29,7 +29,19 @@ else # > 8.3
   node.default[:postgresql][:ssl] = "true"
 end
 
-package "postgresql"
+package "postgresql" do
+  case node[:platform]
+  when "ubuntu"
+    case
+    when node[:platform_version].to_f <= 10.04 && node[:postgresql][:version].to_f < 9.0
+      package_name "postgresql"
+    else
+      package_name "postgresql-#{node[:postgresql][:version]}"
+    end
+  else
+    package_name "postgresql"
+  end
+end
 
 service "postgresql" do
   case node['platform']
