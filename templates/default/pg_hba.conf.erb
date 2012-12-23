@@ -1,7 +1,12 @@
-# Database administrative login by UNIX sockets
-local   all         postgres                          ident
+# Database administrative login by Unix domain socket
+local   all             postgres                                peer
 
-# TYPE  DATABASE    USER        CIDR-ADDRESS          METHOD
-local   all         all                               md5
-host    all         all         127.0.0.1/32          md5
-host    all         all         ::1/128               md5
+# TYPE      DATABASE    USER        CIDR-ADDRESS        METHOD
+local       all         all                             md5
+<% node.postgresql.hba.each do |h| %>
+host        all         all         <%= h["address"] %> <%= h["method"] %>
+<% end %>
+
+<% node.postgresql.standby_ips.each do |ip| %>
+host        replication all         <%= ip -%>/32       trust
+<% end %>

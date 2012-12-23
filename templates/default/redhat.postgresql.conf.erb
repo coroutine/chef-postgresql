@@ -56,7 +56,7 @@
 
 # - Connection Settings -
 
-#listen_addresses = 'localhost'         # what IP address(es) to listen on;
+listen_addresses = '<%= node.postgresql.listen_addresses -%>'         # what IP address(es) to listen on;
                                         # comma-separated list of addresses;
                                         # defaults to 'localhost', '*' = all
                                         # (change requires restart)
@@ -348,7 +348,7 @@ log_rotation_size = 0                   # Automatic rotation of logfiles will
                                         #   %q = stop here in non-session
                                         #        processes
                                         #   %% = '%'
-                                        # e.g. '<%u%%%d> '
+                                        # e.g. '<%%u%%%d> '
 #log_lock_waits = off                   # log lock waits >= deadlock_timeout
 #log_statement = 'none'                 # none, ddl, mod, all
 #log_temp_files = -1                    # log temporary files equal or larger
