@@ -28,12 +28,6 @@ else # > 8.3
   node.default[:postgresql][:ssl] = "true"
 end
 
-node['postgresql']['server']['packages'].each do |pg_pack|
-  package pg_pack do
-    action :install
-  end
-end
-
 package "postgresql" do
   case node[:platform]
   when "ubuntu"
