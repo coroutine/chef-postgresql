@@ -42,6 +42,27 @@ package "postgresql" do
   end
 end
 
+if node.default[:postgresql][:ssl] == 'true' &&
+  node[:postgresql].has_key?(:ssl_password)
+
+  data_dir = node[:postgresql][:data_dir]
+  server_key = File.join(data_dir, 'server.key')
+  bash 'generate-ssl-keys' do
+    user 'postgres'
+    group 'postgres'
+    cwd data_dir
+    # Steps from http://www.howtoforge.com/postgresql-ssl-certificates
+    code <<-EOF
+      openssl genrsa -des3 -passout pass:#{node[:postgresql][:ssl_password]} -out server.key 1024;
+      openssl rsa -passin pass:#{node[:postgresql][:ssl_password]} -in server.key -out server.key;
+      chmod 400 server.key;
+      openssl req -new -key server.key -days 3650 -out server.crt -x509 -subj '/C=PH/ST=Metro Manila/L=NA/O=Stiltify/CN=stiltify.com/emailAddress=hello@stiltify.com';
+    EOF
+    not_if { File.exists?(server_key) }
+  end
+end
+
+
 service "postgresql" do
   case node['platform']
   when "ubuntu"

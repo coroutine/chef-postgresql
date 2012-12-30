@@ -52,6 +52,7 @@ when "ubuntu"
   end
 
   set[:postgresql][:dir] = "/etc/postgresql/#{node[:postgresql][:version]}/main"
+  default[:postgresql][:data_dir] = "/var/lib/postgresql/#{node[:postgresql][:version]}/main/"
   default['postgresql']['client']['packages'] = %w{postgresql-client libpq-dev}
   default[:postgresql][:server][:packages] = [postgresql_package_name]
 
