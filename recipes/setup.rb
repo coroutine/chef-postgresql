@@ -101,7 +101,7 @@ setup_items.each do |setup|
     
     create_database_command = begin
       "sudo -u postgres createdb -E #{db['encoding']} -O #{db['owner']} " +
-      "-T #{db['template']} #{db['name']} --local=#{db['locale']}"
+      "--locale #{db['locale']} -T #{db['template']} #{db['name']}"
     end
     
     bash "create_database" do
