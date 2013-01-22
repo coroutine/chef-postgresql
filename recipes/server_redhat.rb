@@ -53,6 +53,14 @@ service "postgresql" do
   action [:enable, :start]
 end
 
+postgresql_conf_source = begin
+  if node[:postgresql][:version] == "9.1"
+    "redhat.postgresql_91.conf.erb"
+  else
+    "redhat.postgresql.conf.erb"
+  end
+end
+
 template "#{node[:postgresql][:dir]}/postgresql.conf" do
   source "redhat.postgresql.conf.erb"
   owner "postgres"

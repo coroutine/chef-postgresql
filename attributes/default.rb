@@ -44,9 +44,17 @@ when "ubuntu"
     default[:postgresql][:version] = "9.1"
   end
 
+  case
+  when platform_version.to_f <= 10.04 && default[:postgresql][:version].to_f >= 8.4
+    postgresql_package_name = "postgresql-#{default[:postgresql][:version]}"
+  else
+    postgresql_package_name = 'postgresql'
+  end
+
   set[:postgresql][:dir] = "/etc/postgresql/#{node[:postgresql][:version]}/main"
+  default[:postgresql][:data_dir] = "/var/lib/postgresql/#{node[:postgresql][:version]}/main/"
   default['postgresql']['client']['packages'] = %w{postgresql-client libpq-dev}
-  default['postgresql']['server']['packages'] = %w{postgresql}
+  default[:postgresql][:server][:packages] = [postgresql_package_name]
 
 when "fedora"
 

@@ -66,6 +66,7 @@ The following attributes are generated in
   password by the `openssl` cookbook's library.
 * `node['postgresql']['ssl']` - whether to enable SSL (off for version
   8.3, true for 8.4 and later).
+* For SSL keys to be automatically generated for you, you need to override `node[:postgresql][:ssl_password]` (only tested on Ubuntu). This password is the passphrase used for signing the certificates.
 
 The following attributes are used by the `setup` recipe:
 * `node['postgresql']['databag']` - the data bag in which the `setup` recipe
