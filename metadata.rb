@@ -3,7 +3,8 @@ maintainer_email  "cookbooks@opscode.com"
 license           "Apache 2.0"
 description       "Installs and configures postgresql for clients or servers"
 long_description  IO.read(File.join(File.dirname(__FILE__), 'README.md'))
-version           "0.99.6"
+
+version           "1.0.1"
 recipe            "postgresql", "Includes postgresql::client"
 recipe            "postgresql::apt_postgresql_ppa ", "Includes ubuntu sources for PostgreSQL 9.1"
 recipe            "postgresql::client", "Installs postgresql client package(s)"
