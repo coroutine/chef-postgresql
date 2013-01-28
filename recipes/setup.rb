@@ -31,12 +31,12 @@
 #    "databases": [
 #        {
 #            "name":"some_db",
-#            "owner":"some_user", 
+#            "owner":"some_user",
 #            "template":"template0",
 #            "encoding": "UTF8",
 #            "locale": "en_US.utf8"
 #        }
-#    ] 
+#    ]
 # }
 # --------------------------------------
 
@@ -46,16 +46,22 @@
 setup_items = []
 node['postgresql']['setup_items'].each do |itemname|
   databag = node['postgresql']['databag']
-  item = "id:#{itemname}"
-  search(databag, item) do |i|
+  if Chef::Config[:solo]
+    i = data_bag_item(databag,  itemname.gsub(/[.]/, '-'))
     setup_items << i
+  else
+    item = "id:#{itemname}"
+
+    search(databag, item) do |i|
+      setup_items << i
+    end
   end
 end
 
 # We use a mix of psql commands and SQL statements to create users.
 #
 # To Create a User:
-#     sudo -u postgres createuser -s some_user 
+#     sudo -u postgres createuser -s some_user
 #
 # To set their password:
 #     sudo -u postgres psql -c "ALTER USER some_user WITH PASSWORD 'secret';"
@@ -72,9 +78,9 @@ end
 #     sudo -u postgres psql -c "\du" | grep some_user
 
 setup_items.each do |setup|
-  
+
   setup["users"].each do |user|
-    
+
     create_user_command = begin
       if user['superuser']
         "sudo -u postgres createuser -s #{user['username']};"
@@ -94,16 +100,16 @@ setup_items.each do |setup|
         #{create_user_command} #{set_user_password}
       EOH
       not_if "sudo -u postgres psql -c \"\\du\" | grep #{user['username']}"
-    end 
-  end 
+    end
+  end
 
   setup["databases"].each do |db|
-    
+
     create_database_command = begin
       "sudo -u postgres createdb -E #{db['encoding']} -O #{db['owner']} " +
       "--locale #{db['locale']} -T #{db['template']} #{db['name']}"
     end
-    
+
     bash "create_database" do
       user "root"
       code <<-EOH

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Cookbook Name:: postgresql
 # Recipe:: server
@@ -84,6 +85,14 @@ service "postgresql" do
   end
   supports :restart => true, :status => true, :reload => true
   action :nothing
+end
+
+directory "#{node[:postgresql][:dir]}" do
+  owner "postgres"
+  group "postgres"
+  mode 0600
+  recursive true
+  action :create
 end
 
 template "#{node[:postgresql][:dir]}/postgresql.conf" do
