@@ -110,7 +110,7 @@ setup_items.each do |setup|
       "--locale #{db['locale']} -T #{db['template']} #{db['name']}"
     end
 
-    bash "create_database" do
+    bash "create_#{db['name']}_database" do
       user "root"
       code <<-EOH
         #{create_database_command}
