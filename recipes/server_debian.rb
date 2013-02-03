@@ -90,7 +90,7 @@ end
 directory "#{node[:postgresql][:dir]}" do
   owner "postgres"
   group "postgres"
-  mode 0600
+  mode 0751
   recursive true
   action :create
 end
